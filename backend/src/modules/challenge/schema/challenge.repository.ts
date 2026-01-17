@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, QueryOptions, Types } from 'mongoose';
 import { Challenge, ChallengeDocument } from './challenge.schema';
 import { CreateChallengeDto } from '../dto/create-challenge.dto';
+import { QueryFilter } from 'mongoose';
 
 @Injectable()
 export class ChallengeRepository {
@@ -13,13 +14,9 @@ export class ChallengeRepository {
 
   async create(dto: CreateChallengeDto) {
     const startDate = new Date(dto.startDate);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + dto.duration - 1);
-
     const challenge = new this.challengeModel({
       duration: dto.duration,
       startDate,
-      endDate,
       habits: dto.habits,
       mode: dto.mode,
     });
@@ -27,8 +24,8 @@ export class ChallengeRepository {
     return challenge.save();
   }
 
-  async findById(challengeId: string) {
-    return this.challengeModel.findById(challengeId).lean();
+  async findById(challengeId: Types.ObjectId) {
+    return this.challengeModel.findById(challengeId);
   }
 
   async findByUser(userId: string) {
@@ -41,10 +38,23 @@ export class ChallengeRepository {
     }));
   }
 
+  findMany(
+    filter: QueryFilter<ChallengeDocument>,
+    options?: QueryOptions<ChallengeDocument>,
+  ): Promise<ChallengeDocument[]> {
+    return this.challengeModel.find(filter, null, options);
+  }
+
   async delete(challengeId: string, userId: string) {
     return this.challengeModel.deleteOne({
       _id: challengeId,
       userId,
     });
+  }
+
+  async findActiveChallenges(today: Date) {
+    return this.findMany({
+      startDate: { $lte: today },
+    }).then((challenges) => challenges.filter((ch) => today <= ch.endDate));
   }
 }

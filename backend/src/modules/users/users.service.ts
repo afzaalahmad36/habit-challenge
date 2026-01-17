@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User } from './schema/user.schema';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -29,5 +30,9 @@ export class UserService {
 
   existsById(userId: string) {
     return this.userRepo.exists({ _id: userId });
+  }
+
+  incrementPoints(userId: Types.ObjectId, points: number) {
+    return this.userRepo.incrementPoints(userId, points);
   }
 }

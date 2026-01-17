@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, QueryFilter, Types } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class UserRepository {
   }
 
   findMany(
-    filter: Partial<User>,
+    filter: QueryFilter<UserDocument>,
     options?: { limit?: number; skip?: number; sort?: any },
   ) {
     return this.userModel
@@ -38,7 +38,15 @@ export class UserRepository {
     return this.userModel.findByIdAndUpdate(id, data, { new: true });
   }
 
-  exists(filter: Partial<User> & { _id?: string }) {
+  exists(filter: QueryFilter<UserDocument>) {
     return this.userModel.exists(filter);
+  }
+
+  incrementPoints(userId: Types.ObjectId, points: number) {
+    return this.userModel.findByIdAndUpdate(
+      userId,
+      { $inc: { points } },
+      { new: true },
+    );
   }
 }

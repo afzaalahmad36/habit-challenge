@@ -12,10 +12,12 @@ async function bootstrap() {
     {
       email: 'admin@test.com',
       password: await bcrypt.hash('Admin@123', 10),
+      points: 0,
     },
     {
       email: 'user@test.com',
       password: await bcrypt.hash('User@123', 10),
+      points: 0,
     },
   ];
 

@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChallengeModule } from './modules/challenge/challenge.module';
+import { TaskModule } from './modules/task/task.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ChallengeModule } from './modules/challenge/challenge.module';
     UserModule,
     AuthModule,
     ChallengeModule,
+    TaskModule,
   ],
 })
 export class AppModule {}

@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { DurationStep } from '@/components/challenge/DurationStep';
-import { StartDateStep } from '@/components/challenge/StartDateStep';
-import { HabitSelectionStep } from '@/components/challenge/HabitSelectionStep';
-import { ChallengeModeStep } from '@/components/challenge/ChallengeModeStep';
-import { challengeAPI } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
-import { SelectedHabit, ChallengeMode, HabitType } from '@/types';
-import { HABITS } from '@/lib/constants';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { DurationStep } from "@/components/challenge/DurationStep";
+import { StartDateStep } from "@/components/challenge/StartDateStep";
+import { HabitSelectionStep } from "@/components/challenge/HabitSelectionStep";
+import { ChallengeModeStep } from "@/components/challenge/ChallengeModeStep";
+import { challengeAPI } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { SelectedHabit, ChallengeMode, HabitType } from "@/types";
+import { HABITS } from "@/lib/constants";
 
 export default function CreateChallengePage() {
   const router = useRouter();
@@ -20,13 +20,18 @@ export default function CreateChallengePage() {
 
   // Form state
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
-  const [selectedStartDate, setSelectedStartDate] = useState<string>('today');
+  const [selectedStartDate, setSelectedStartDate] = useState<string>("today");
   const [selectedHabits, setSelectedHabits] = useState<SelectedHabit[]>([]);
   const [selectedMode, setSelectedMode] = useState<ChallengeMode | null>(null);
 
   const totalSteps = 4;
 
-  const handleToggleHabit = (habitId: string, requirement: string) => {
+  const handleToggleHabit = (habitId: string, requirement: string | null) => {
+    if (requirement === null) {
+      setSelectedHabits((prev) => prev.filter((h) => h.habitId !== habitId));
+      return;
+    }
+
     const habit = HABITS.find((h) => h.id === habitId);
     if (!habit) return;
 
@@ -61,11 +66,23 @@ export default function CreateChallengePage() {
     try {
       // Calculate start date
       let startDate = new Date();
-      if (selectedStartDate === 'tomorrow') {
+      if (selectedStartDate === "tomorrow") {
         startDate.setDate(startDate.getDate() + 1);
+      } else if (selectedStartDate !== "today") {
+        // Handle custom date
+        const [year, month, day] = selectedStartDate.split("-").map(Number);
+        startDate = new Date(year, month - 1, day);
       }
-      // Set to start of day
-      startDate.setHours(0, 0, 0, 0);
+
+      // Create UTC date to ensure DB stores the exact calendar date selected (e.g., T00:00:00.000Z)
+      // This prevents timezone offsets from shifting the date to the previous day in the database
+      const utcStartDate = new Date(
+        Date.UTC(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+        ),
+      );
 
       // Convert frontend habits to backend format
       const backendHabits = selectedHabits.map((habit) => {
@@ -83,35 +100,35 @@ export default function CreateChallengePage() {
 
       const challengeData = {
         duration: selectedDuration!,
-        startDate: startDate.toISOString(),
+        startDate: utcStartDate.toISOString(),
         mode: selectedMode!,
         habits: backendHabits,
       };
 
-      console.log('Submitting challenge data:', challengeData);
+      console.log("Submitting challenge data:", challengeData);
 
       const response = await challengeAPI.createChallenge(challengeData);
 
       // Save challenge ID for later use
       if (response.data?.id) {
-        localStorage.setItem('currentChallengeId', response.data.id);
+        localStorage.setItem("currentChallengeId", response.data.id);
       }
 
       toast({
-        title: 'Success!',
-        description: 'Your challenge has been created.',
+        title: "Success!",
+        description: "Your challenge has been created.",
       });
 
       // Redirect to dashboard or challenge detail page
-      router.push(`/dashboard`);
+      router.push(`/`);
     } catch (error: any) {
-      console.error('Error creating challenge:', error);
+      console.error("Error creating challenge:", error);
       toast({
-        title: 'Error',
+        title: "Error",
         description:
           error.response?.data?.message ||
-          'Failed to create challenge. Please try again.',
-        variant: 'destructive',
+          "Failed to create challenge. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -119,11 +136,11 @@ export default function CreateChallengePage() {
   };
 
   return (
-    <div className='min-h-screen bg-background'>
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className='border-b'>
-        <div className='container max-w-2xl mx-auto px-4 py-4'>
-          <div className='flex items-center gap-4'>
+      <div className="border-b">
+        <div className="container max-w-2xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => {
                 if (currentStep > 1) {
@@ -132,20 +149,20 @@ export default function CreateChallengePage() {
                   router.back();
                 }
               }}
-              className='p-2 hover:bg-accent rounded-full transition-colors'
+              className="p-2 hover:bg-accent rounded-full transition-colors"
             >
-              <ArrowLeft className='h-5 w-5' />
+              <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className='text-xl font-bold'>Create Challenge</h1>
+            <h1 className="text-xl font-bold">Create Challenge</h1>
           </div>
 
           {/* Progress Bar */}
-          <div className='mt-4 flex gap-1'>
+          <div className="mt-4 flex gap-1">
             {Array.from({ length: totalSteps }).map((_, index) => (
               <div
                 key={index}
                 className={`h-1 flex-1 rounded-full transition-colors ${
-                  index < currentStep ? 'bg-primary' : 'bg-muted'
+                  index < currentStep ? "bg-primary" : "bg-muted"
                 }`}
               />
             ))}
@@ -154,7 +171,7 @@ export default function CreateChallengePage() {
       </div>
 
       {/* Content */}
-      <div className='container max-w-2xl mx-auto px-4 py-8'>
+      <div className="container max-w-2xl mx-auto px-4 py-8">
         {currentStep === 1 && (
           <DurationStep
             selectedDuration={selectedDuration}

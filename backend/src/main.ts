@@ -12,6 +12,12 @@ async function bootstrap() {
       transform: false,
     }),
   );
+
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,
+  });
   await app.listen(process.env.PORT);
   logger.log(`🚀 Application is running on port ${process.env.PORT}`);
 }

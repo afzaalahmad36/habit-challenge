@@ -8,8 +8,8 @@ export class TasksScheduler {
   private readonly logger = new Logger(TasksScheduler.name);
   constructor(private readonly challengeService: ChallengesService) {}
 
-  @Cron('0 0 * * *') // every day at midnight
-  // @Cron('*/30 * * * * *')
+  // @Cron('0 0 * * *') // every day at midnight
+  @Cron('*/30 * * * * *')
   async handleCron() {
     const today = new Date();
     const formattedDate = format(today, 'yyyy-MM-dd HH:mm:ss');

@@ -22,6 +22,10 @@ export class ChallengesService {
     return this.challengeRepo.create(dto);
   }
 
+  findAll() {
+    return this.challengeRepo.findMany({});
+  }
+
   async generateDailyTasks(today: Date): Promise<void> {
     const challenges = await this.challengeRepo.findActiveChallenges(today);
 
@@ -51,7 +55,7 @@ export class ChallengesService {
       throw new BadRequestException('User already joined');
     }
 
-    // Validate mode limits
+    // mode validation (unchanged)
     const participantCount = challenge.participantIds.length;
 
     switch (challenge.mode) {
@@ -61,25 +65,21 @@ export class ChallengesService {
             'Solo challenge already has a participant',
           );
         break;
-
       case ChallengeMode.ONE_ON_ONE:
         if (participantCount >= 2)
           throw new BadRequestException('One-on-One challenge is full');
         break;
-
-      case ChallengeMode.MULTIPLAYER:
-        // optional: can enforce max limit if needed
-        break;
     }
 
-    // Add user to participants
     challenge.participantIds.push(userObjectId);
     await challenge.save();
 
-    // Generate today's tasks for the user
-    await this.taskService.generateTasksForChallenge(challenge, new Date(), [
-      userId,
-    ]);
+    // ✅ Generate tasks ONLY if challenge has started
+    if (new Date() >= challenge.startDate) {
+      await this.taskService.generateTasksForChallenge(challenge, new Date(), [
+        userId,
+      ]);
+    }
 
     return { message: 'Joined challenge successfully' };
   }

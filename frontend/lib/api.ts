@@ -101,27 +101,37 @@ export const challengeAPI = {
         value: number;
       };
     }>;
-  }) => api.post("/challenge/", data),
+  }) => api.post("/challenge", data),
 
   // GET endpoints (add these based on your backend)
-  getChallenges: () => api.get("/challenge/"),
+  getChallenges: () => api.get("/challenge"),
   getChallenge: (id: string) => api.get(`/challenge/${id}`),
   getUserChallenges: () => api.get("/challenge/user"),
   updateChallengeMode: (id: string, mode: string) =>
     api.patch(`/challenge/${id}/mode`, { mode }),
+  joinChallenge: (challengeId: string) =>
+    api.post(`/challenge/${challengeId}/join`),
 };
 
 export const taskAPI = {
   // Add these endpoints based on your backend implementation
   getDailyTasks: (challengeId?: string) =>
-    api.get("/tasks/daily", challengeId ? { params: { challengeId } } : {}),
+    api.get(
+      "/task/daily-tasks",
+      challengeId ? { params: { challengeId } } : {},
+    ),
 
-  getTasks: (challengeId: string) => api.get(`/tasks/${challengeId}`),
+  getTasks: (challengeId: string) => api.get(`/task/${challengeId}`),
 
-  markTaskComplete: (taskId: string) => api.patch(`/tasks/${taskId}/complete`),
+  markTaskComplete: (taskId: string, challengeId?: string) =>
+    api.post(`/task/${taskId}/complete`, { challengeId }),
 
   getTaskHistory: (challengeId: string) =>
-    api.get(`/tasks/${challengeId}/history`),
+    api.get("/task/history", { params: { challengeId } }),
+};
+
+export const userAPI = {
+  getProfile: () => api.get("/users/profile"),
 };
 
 // Utility function to handle login and store tokens

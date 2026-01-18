@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { HABITS } from '@/lib/constants';
-import { SelectedHabit } from '@/types';
-import { Check, Info } from 'lucide-react';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { HABITS } from "@/lib/constants";
+import { SelectedHabit } from "@/types";
+import { Info } from "lucide-react";
 
 interface HabitSelectionStepProps {
   selectedHabits: SelectedHabit[];
-  onToggleHabit: (habitId: string, requirement: string) => void;
+  onToggleHabit: (habitId: string, requirement: string | null) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -21,15 +21,15 @@ export function HabitSelectionStep({
   onBack,
 }: HabitSelectionStepProps) {
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       <div>
-        <h2 className='text-2xl font-bold mb-2'>Select Habits</h2>
-        <p className='text-muted-foreground'>
+        <h2 className="text-2xl font-bold mb-2">Select Habits</h2>
+        <p className="text-muted-foreground">
           All 7 habits included (customize with Shebrew*)
         </p>
       </div>
 
-      <div className='space-y-4 max-h-[60vh] overflow-y-auto'>
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto">
         {HABITS.map((habit) => {
           const isSelected = selectedHabits.some((h) => h.habitId === habit.id);
           const selectedRequirement = selectedHabits.find(
@@ -37,46 +37,55 @@ export function HabitSelectionStep({
           )?.requirement;
 
           return (
-            <Card key={habit.id} className='p-4'>
-              <div className='flex items-center justify-between mb-3'>
-                <div className='flex items-center gap-3'>
+            <Card key={habit.id} className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) =>
+                      onToggleHabit(
+                        habit.id,
+                        e.target.checked
+                          ? String(habit.requirements[0].value)
+                          : null,
+                      )
+                    }
+                    className="w-5 h-5 accent-[#FF6B35] cursor-pointer"
+                  />
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl ${
-                      isSelected ? 'bg-green-100' : 'bg-gray-100'
-                    }`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl bg-gray-100`}
                   >
-                    {isSelected ? (
-                      <Check className='text-green-600' />
-                    ) : (
-                      habit.icon
-                    )}
+                    {habit.icon}
                   </div>
                   <div>
-                    <h3 className='font-semibold'>{habit.name}</h3>
-                    <p className='text-sm text-muted-foreground'>
+                    <h3 className="font-semibold">{habit.name}</h3>
+                    <p className="text-sm text-muted-foreground">
                       {habit.description}
                     </p>
                   </div>
                 </div>
-                <Button variant='ghost' size='icon'>
-                  <Info className='h-4 w-4' />
+                <Button variant="ghost" size="icon">
+                  <Info className="h-4 w-4" />
                 </Button>
               </div>
 
-              <div className='flex gap-2'>
+              <div className="flex gap-2">
                 {habit.requirements.map((req: any) => (
                   <Button
                     key={req.value}
                     variant={
-                      selectedRequirement === req.value ? 'default' : 'outline'
+                      selectedRequirement === String(req.value)
+                        ? "default"
+                        : "outline"
                     }
-                    size='sm'
+                    size="sm"
                     className={`flex-1 rounded-full ${
-                      selectedRequirement === req.value
-                        ? 'bg-primary text-primary-foreground'
-                        : ''
+                      selectedRequirement === String(req.value)
+                        ? "bg-primary text-primary-foreground"
+                        : ""
                     }`}
-                    onClick={() => onToggleHabit(habit.id, req.value)}
+                    onClick={() => onToggleHabit(habit.id, String(req.value))}
                   >
                     {req.label}
                   </Button>
@@ -87,18 +96,18 @@ export function HabitSelectionStep({
         })}
       </div>
 
-      <div className='flex gap-3'>
+      <div className="flex gap-3">
         <Button
           onClick={onBack}
-          variant='outline'
-          className='flex-1 h-12 rounded-full'
+          variant="outline"
+          className="flex-1 h-12 rounded-full"
         >
           Back
         </Button>
         <Button
           onClick={onNext}
           disabled={selectedHabits.length === 0}
-          className='flex-1 h-12 bg-[#FF6B35] hover:bg-[#FF6B35]/90 rounded-full'
+          className="flex-1 h-12 bg-[#FF6B35] hover:bg-[#FF6B35]/90 rounded-full"
         >
           Continue
         </Button>
